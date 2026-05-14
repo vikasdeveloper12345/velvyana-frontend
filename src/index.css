@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* FIX HORIZONTAL SCROLL */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* LIGHTBOX IMAGE */
+.yarl__slide_image {
+  max-width: 85vw !important;
+  max-height: 85vh !important;
+
+  object-fit: contain !important;
+
+  user-select: none !important;
+
+  transition: transform 0.15s ease !important;
+
+  /* DEFAULT */
+  cursor: zoom-in !important;
+}
+
+/* AFTER CLICK ZOOM */
+.yarl__slide[aria-current="true"] .yarl__slide_image {
+  cursor: grab !important;
+}
+
+/* DRAGGING */
+.yarl__slide[aria-current="true"] .yarl__slide_image:active {
+  cursor: grabbing !important;
+}
+
+/* REMOVE DEFAULT BUTTON BG */
+.yarl__button {
+  background: transparent !important;
+  filter: none !important;
+}
+
+/* TOOLBAR */
+.yarl__toolbar {
+  padding-top: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* CONTAINER */
+.yarl__container {
+  animation: fadeIn 0.2s ease;
+}
+
+/* SMOOTH OPEN */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
