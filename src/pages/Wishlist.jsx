@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
 
 const Wishlist = () => {
   const navigate = useNavigate();
@@ -89,18 +89,11 @@ const Wishlist = () => {
 
   return (
     <>
-      {/* ✅ SEO */}
-      <Helmet>
-        <title>My Wishlist | Velvyana</title>
-        <meta
-          name="description"
-          content="Browse your wishlist on Velvyana. Save and shop your favorite kurtis, sarees, and ethnic wear."
-        />
-        <meta
-          name="keywords"
-          content="velvyana wishlist, kurti wishlist, saree wishlist, ethnic wear, online shopping"
-        />
-      </Helmet>
+      <SeoHead
+        title="My Wishlist | Velvyana"
+        description="Browse your wishlist on Velvyana. Save and shop your favorite kurtis, sarees, and ethnic wear."
+        keywords="velvyana wishlist, kurti wishlist, saree wishlist, ethnic wear, online shopping"
+      />
 
       <div className="bg-[#020617] min-h-screen text-gray-200">
         <div className="p-4 md:p-6">
