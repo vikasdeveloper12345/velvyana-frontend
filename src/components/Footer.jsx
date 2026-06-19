@@ -5,10 +5,36 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 
-import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { API_URL, getCategoryPath, nameToSlug } from "../utils/api";
+import { navLinkClass, isNavActive } from "../utils/nav";
+
+const PAGE_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/about", label: "About Us" },
+  { to: "/blog", label: "Blog" },
+  { to: "/contact", label: "Contact" },
+  { to: "/terms", label: "Terms & Conditions" },
+  { to: "/refund", label: "Refund Policy" },
+  { to: "/shipping", label: "Shipping Policy" },
+  { to: "/privacy", label: "Privacy Policy" },
+];
+
+const CATEGORY_LINKS = [
+  "Anarkali",
+  "Angrakha",
+  "Kurti",
+  "Palazzo",
+  "Saree",
+  "Sherwani suit",
+  "Shirt",
+  "Suit Piece",
+];
 
 const Footer = () => {
+  const location = useLocation();
+  const [recentBlogs, setRecentBlogs] = useState([]);
 
   const handleClick = () => {
     window.scrollTo({
@@ -17,21 +43,20 @@ const Footer = () => {
     });
   };
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/blogs`)
+      .then((res) => res.json())
+      .then((data) => setRecentBlogs((data.data || []).slice(0, 3)));
+  }, []);
+
+  const categoryLinkClass = (name) => {
+    const slug = nameToSlug(name);
+    const active = location.pathname.startsWith(getCategoryPath(slug));
+    return `transition ${active ? "text-pink-500" : "hover:text-pink-500"}`;
+  };
+
   return (
     <>
-      {/* SEO */}
-      <Helmet>
-        <meta
-          name="description"
-          content="Explore Velvyana Chikankari collections, blogs, categories and premium ethnic wear."
-        />
-
-        <meta
-          name="keywords"
-          content="Velvyana, Chikankari, Anarkali, Saree, Suit Piece, Ethnic Wear, Blog"
-        />
-      </Helmet>
-
       <footer className="bg-gray-900 text-gray-300 border-t border-gray-700">
 
         <div
@@ -47,87 +72,17 @@ const Footer = () => {
             </h3>
 
             <ul className="space-y-3 text-sm">
-
-              <li>
-                <Link
-                  to="/"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Home
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/about"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  About Us
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/blog"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Blog
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/contact"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Contact
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/terms"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Terms & Conditions
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/refund"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Refund Policy
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/shipping"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Shipping Policy
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/privacy"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-
+              {PAGE_LINKS.map((page) => (
+                <li key={page.to}>
+                  <Link
+                    to={page.to}
+                    onClick={handleClick}
+                    className={navLinkClass(location.pathname, page.to)}
+                  >
+                    {page.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
 
           </div>
@@ -140,87 +95,17 @@ const Footer = () => {
             </h3>
 
             <ul className="space-y-3 text-sm">
-
-              <li>
-                <Link
-                  to="/products?category=Anarkali"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Anarkali
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Angrakha"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Angrakha
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Kurti"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Kurti
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Palazzo"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Palazzo
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Saree"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Saree
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Sherwani suit"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Sherwani Suit
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Shirt"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Shirt
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/products?category=Suit Piece"
-                  onClick={handleClick}
-                  className="hover:text-pink-500 transition"
-                >
-                  Suit Piece
-                </Link>
-              </li>
-
+              {CATEGORY_LINKS.map((name) => (
+                <li key={name}>
+                  <Link
+                    to={getCategoryPath(nameToSlug(name))}
+                    onClick={handleClick}
+                    className={categoryLinkClass(name)}
+                  >
+                    {name === "Sherwani suit" ? "Sherwani Suit" : name}
+                  </Link>
+                </li>
+              ))}
             </ul>
 
           </div>
@@ -232,23 +117,27 @@ const Footer = () => {
               RECENT POSTS
             </h3>
 
-            <div className="space-y-2">
-
-              {/* CTRL + CLICK WORKING */}
-              <Link
-                to="/blog/a-closer-look"
-                onClick={handleClick}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm leading-relaxed hover:text-pink-500 transition block"
-              >
-                A Closer Look at Our Signature Categories
-              </Link>
-
-              <p className="text-xs text-gray-500">
-                December 13, 2025
-              </p>
-
+            <div className="space-y-4">
+              {recentBlogs.length ? (
+                recentBlogs.map((blog) => (
+                  <div key={blog.id}>
+                    <Link
+                      to={`/blog/${blog.slug || blog.id}`}
+                      onClick={handleClick}
+                      className={`text-sm leading-relaxed transition block ${
+                        isNavActive(location.pathname, `/blog/${blog.slug || blog.id}`)
+                          ? "text-pink-500"
+                          : "hover:text-pink-500"
+                      }`}
+                    >
+                      {blog.title}
+                    </Link>
+                    <p className="text-xs text-gray-500 mt-1">{blog.date}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No posts yet</p>
+              )}
             </div>
 
           </div>

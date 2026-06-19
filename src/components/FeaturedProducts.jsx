@@ -1,13 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
-import semiImg from "../assets/category/semi.png";
-import kurtiImg from "../assets/category/kurti.png";
-import sareeImg from "../assets/category/saree.png";
-import unstichedImg from "../assets/category/unstiched.png";
-import suitImg from "../assets/category/suit.png";
-import indoImg from "../assets/category/indo.png";
+import { API_URL, getCategoryPath, getSubcategoryPath, getProductPath, nameToSlug, resolveImageUrl } from "../utils/api";
 
 const FeaturedProducts = () => {
   const navigate = useNavigate();
@@ -43,16 +38,38 @@ const FeaturedProducts = () => {
     window.dispatchEvent(new Event("wishlistUpdated"));
   };
 
-  const products = [
-    { id: 1, name: "Handblock Printed Mulmul Suit", price: 1499, oldPrice: 2499, discount: "40% off", img: semiImg },
-    { id: 2, name: "Elegant Cotton Kurti Set", price: 1199, oldPrice: 1999, discount: "42% off", img: kurtiImg },
-    { id: 3, name: "Banarasi Silk Saree", price: 2999, oldPrice: 5499, discount: "48% off", img: sareeImg },
-    { id: 4, name: "Designer Wedding Lehenga", price: 7999, oldPrice: 12999, discount: "45% off", img: unstichedImg },
-    { id: 5, name: "Summer Cotton Suit", price: 999, oldPrice: 1999, discount: "50% off", img: suitImg },
-    { id: 6, name: "Designer Kurti Set", price: 1299, oldPrice: 2499, discount: "48% off", img: kurtiImg },
-    { id: 7, name: "Party Wear Lehenga", price: 4999, oldPrice: 8999, discount: "44% off", img: indoImg },
-    { id: 8, name: "Designer Silk Saree", price: 2599, oldPrice: 4999, discount: "48% off", img: semiImg },
-  ];
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products?featured=1`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(
+          (data.data || []).slice(0, 8).map((p) => {
+            const salesPrice = p.price;
+            const originalPrice = p.original_price || null;
+            const discount =
+              originalPrice && originalPrice > salesPrice
+                ? `${Math.round(((originalPrice - salesPrice) / originalPrice) * 100)}% off`
+                : null;
+
+            return {
+              id: p.id,
+              slug: p.slug,
+              name: p.name,
+              price: salesPrice,
+              original_price: originalPrice,
+              oldPrice: originalPrice || Math.round(salesPrice * 1.67),
+              discount: discount || "40% off",
+              url_segment: p.url_segment,
+              category_slug: p.category_slug,
+              subcategory_slug: p.subcategory_slug,
+              img: resolveImageUrl(p.img || p.images?.[0]),
+            };
+          })
+        );
+      });
+  }, []);
 
   return (
     <div className="w-full bg-[#020617] py-16">
@@ -81,7 +98,7 @@ const FeaturedProducts = () => {
             <div
               key={item.id}
               onClick={() =>
-                navigate(`/product/${item.id}`, { state: item })
+                navigate(getProductPath(item), { state: item })
               }
 
               // 🔥 ONLY THIS CHANGED 
@@ -92,13 +109,12 @@ const FeaturedProducts = () => {
             >
 
               {/* IMAGE */}
-              <div className="relative overflow-hidden rounded-lg">
+              <div className="relative overflow-hidden rounded-lg product-photo-frame">
 
                 <img
                   src={item.img}
                   alt={item.name}
-                  className="w-full h-[380px] object-cover 
-                  transition duration-500 group-hover:scale-110"
+                  className="sharp-img transition duration-300"
                 />
 
                 {/* ❤️ WISHLIST */}
@@ -135,12 +151,16 @@ const FeaturedProducts = () => {
                   <span className="font-semibold text-white">
                     ₹{item.price}
                   </span>
-                  <span className="line-through text-gray-400 ml-2">
-                    ₹{item.oldPrice}
-                  </span>
-                  <span className="text-red-500 ml-2 text-xs">
-                    {item.discount}
-                  </span>
+                  {item.original_price && item.original_price > item.price && (
+                    <>
+                      <span className="line-through text-gray-400 ml-2">
+                        ₹{item.original_price}
+                      </span>
+                      <span className="text-red-500 ml-2 text-xs">
+                        {item.discount}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 

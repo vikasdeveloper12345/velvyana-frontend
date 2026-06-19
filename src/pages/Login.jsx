@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { useSeo } from "../hooks/useSeo";
+import { API_URL } from "../utils/api";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const seo = useSeo("login", {
+    title: "Login - Velvyana",
+    description: "Login or create your Velvyana account.",
+    keywords: "login, velvyana account, sign up",
+  });
 
   const from = location.state?.from?.pathname || "/";
 
@@ -26,7 +33,7 @@ const Login = () => {
     try {
       if (isSignup) {
         // 🔥 REGISTER API
-        const res = await fetch("http://localhost:5000/api/auth/register", {
+        const res = await fetch(`${API_URL}/api/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -61,9 +68,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#020617]">
 
-      <Helmet>
-        <title>Login - Velvyana</title>
-      </Helmet>
+      <SeoHead {...seo} />
 
       <form
         onSubmit={handleSubmit}

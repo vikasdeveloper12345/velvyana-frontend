@@ -6,13 +6,11 @@ import {
   FaHeadset,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Helmet } from "react-helmet";
 
 const ProfileSidebar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { logout } = useAuth();
 
   // ✅ CTRL + CLICK SUPPORT
@@ -29,21 +27,6 @@ const ProfileSidebar = () => {
       w-full md:w-72 p-6 rounded-xl shadow-xl 
       text-gray-200 space-y-4 border border-gray-800"
     >
-
-      {/* ✅ SEO */}
-      <Helmet key={location.pathname}>
-        <title>My Profile - Velvyana</title>
-
-        <meta
-          name="description"
-          content="Manage your profile, orders, wishlist, and account settings on Velvyana."
-        />
-
-        <meta
-          name="keywords"
-          content="profile, orders, wishlist, account, velvyana user"
-        />
-      </Helmet>
 
       {/* USER */}
       <div className="flex items-center gap-3">

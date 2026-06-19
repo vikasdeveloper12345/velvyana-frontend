@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import ProfileDrawer from "./ProfileDrawer";
 import { useAuth } from "../context/AuthContext";
+import { getProductPath, getCategoryPath, nameToSlug } from "../utils/api";
 import { allProducts } from "../data/products";
 
 const categoryList = [
@@ -122,7 +123,7 @@ const Navbar = () => {
     );
 
     if (productMatch) {
-      navigate(`/product/${productMatch.id}`, { state: productMatch });
+      navigate(getProductPath(productMatch), { state: productMatch });
       setShowDropdown(false);
     } else {
       alert("Not found");
@@ -180,9 +181,9 @@ const Navbar = () => {
                   key={item.id}
                   onMouseDown={() => {
                     if (item.isCategory) {
-                      navigate(`/products?category=${item.category}`);
+                      navigate(getCategoryPath(nameToSlug(item.category)));
                     } else {
-                      navigate(`/product/${item.id}`, { state: item });
+                      navigate(getProductPath(item), { state: item });
                     }
                     setShowDropdown(false);
                   }}

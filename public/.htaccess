@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Admin panel is a separate SPA under /admin
+  RewriteRule ^admin/ - [L]
+
+  # API is hosted on a separate subdomain (do not rewrite /api here)
+  RewriteRule ^api/ - [L]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

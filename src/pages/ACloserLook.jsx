@@ -1,19 +1,13 @@
 import blogBg from "../assets/banner/blog.png";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
 
 const ACloserLook = () => {
   return (
     <div className="bg-[#f5f5f5] text-[#374151] min-h-screen">
-
-      {/* SEO */}
-      <Helmet>
-        <title>A Closer Look - Velvyana Chikankari</title>
-
-        <meta
-          name="description"
-          content="Explore Velvyana’s signature chikankari categories including suit pieces, anarkali and sarees."
-        />
-      </Helmet>
+      <SeoHead
+        title="A Closer Look - Velvyana Chikankari"
+        description="Explore Velvyana's signature chikankari categories including suit pieces, anarkali and sarees."
+      />
 
       {/* HERO */}
       <div className="relative h-[280px] md:h-[380px] w-full">

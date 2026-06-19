@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { FaInstagram, FaFacebook, FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { useSeo } from "../hooks/useSeo";
+import { API_URL } from "../utils/api";
 
 const Contact = () => {
+  const seo = useSeo("contact", {
+    title: "Contact Us - Velvyana",
+    description: "Contact Velvyana for support.",
+    keywords: "contact velvyana, support",
+  });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -21,7 +30,7 @@ const Contact = () => {
     setErrors({ ...errors, [e.target.name]: false });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let newErrors = {};
@@ -36,26 +45,45 @@ const Contact = () => {
       return;
     }
 
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 2000);
+    setSubmitting(true);
+    setSubmitError("");
 
-    setForm({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    try {
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to send message");
+
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+
+      setForm({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#020617] text-white py-14 px-6">
 
       {/* SEO */}
-      <Helmet>
-        <title>Contact Us - Velvyana</title>
-        <meta name="description" content="Contact Velvyana for support." />
-        <meta name="keywords" content="contact velvyana, support" />
-      </Helmet>
+      <SeoHead {...seo} />
+
+      {submitError && (
+        <div className="fixed top-6 right-6 bg-red-500 px-5 py-3 rounded-lg shadow-lg z-50">
+          {submitError}
+        </div>
+      )}
 
       {/* SUCCESS */}
       {submitted && (
@@ -175,8 +203,12 @@ const Contact = () => {
               )}
             </div>
 
-            <button className="w-full bg-pink-500 py-3 rounded-lg hover:bg-pink-600">
-              Send Message
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-pink-500 py-3 rounded-lg hover:bg-pink-600 disabled:opacity-60"
+            >
+              {submitting ? "Sending..." : "Send Message"}
             </button>
 
           </form>

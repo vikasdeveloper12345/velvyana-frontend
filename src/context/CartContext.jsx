@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { normalizeProduct } from "../utils/api";
 
 const CartContext = createContext();
 
@@ -19,18 +20,19 @@ const CartProvider = ({ children }) => {
 
   // ➕ ADD TO CART
   const addToCart = (product) => {
+    const item = normalizeProduct(product);
     setCart((prev) => {
-      const exist = prev.find((item) => item.id === product.id);
+      const exist = prev.find((i) => String(i.id) === String(item.id));
 
       if (exist) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + 1 }
-            : item
+        return prev.map((i) =>
+          String(i.id) === String(item.id)
+            ? { ...i, qty: i.qty + (product.qty || 1) }
+            : i
         );
       }
 
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...item, qty: product.qty || 1 }];
     });
   };
 
@@ -39,7 +41,7 @@ const CartProvider = ({ children }) => {
     setCart((prev) =>
       prev
         .map((item) =>
-          item.id === id
+          String(item.id) === String(id)
             ? { ...item, qty: item.qty - 1 }
             : item
         )
@@ -47,10 +49,20 @@ const CartProvider = ({ children }) => {
     );
   };
 
-  // ❌ DELETE FULL ITEM
   const deleteFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+    setCart((prev) => prev.filter((item) => String(item.id) !== String(id)));
   };
+
+  const replaceCart = (items) => {
+    setCart(
+      (items || []).map((product) => ({
+        ...normalizeProduct(product),
+        qty: Number(product.qty) || 1,
+      }))
+    );
+  };
+
+  const clearCart = () => setCart([]);
 
   // 💰 TOTAL ITEMS
   const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
@@ -66,8 +78,10 @@ const CartProvider = ({ children }) => {
       value={{
         cart,
         addToCart,
+        replaceCart,
         removeFromCart,
         deleteFromCart,
+        clearCart,
         totalItems,
         totalPrice,
       }}
