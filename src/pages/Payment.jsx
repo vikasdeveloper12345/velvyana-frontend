@@ -1,13 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { useSeo } from "../hooks/useSeo";
+import { API_URL, getAuthHeaders } from "../utils/api";
+import { useStoreSettings } from "../hooks/useStoreSettings";
+import { calculateCartPricing } from "../utils/cartPricing";
+import PriceSummary from "../components/PriceSummary";
 
 const Payment = () => {
   const navigate = useNavigate();
-  const { cart, totalPrice } = useCart();
+  const { cart, clearCart } = useCart();
+  const { settings } = useStoreSettings();
+  const seo = useSeo("payment", {
+    title: "Payment - Velvyana",
+    description: "Complete your payment securely at Velvyana.",
+    keywords: "payment, checkout, velvyana payment",
+  });
 
   const [method, setMethod] = useState("UPI");
+  const pricing = calculateCartPricing(cart, settings, method);
 
   const [upi, setUpi] = useState("");
   const [bank, setBank] = useState("");
@@ -28,15 +40,78 @@ const Payment = () => {
     (method === "Net Banking" && bank) ||
     method === "COD";
 
+  const [processing, setProcessing] = useState(false);
+
+  const handlePayment = async () => {
+    if (!isValid || processing) return;
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user?.token) {
+      navigate("/login", { state: { from: { pathname: "/payment" } } });
+      return;
+    }
+
+    const checkoutData = JSON.parse(sessionStorage.getItem("checkout") || "null");
+    if (!checkoutData?.address) {
+      navigate("/checkout");
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      const orderRes = await fetch(`${API_URL}/api/orders`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          items: cart,
+          address: checkoutData.address,
+          paymentMethod: method,
+        }),
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.message);
+
+      const orderTotal = orderData.data.total;
+
+      if (method === "COD") {
+        sessionStorage.removeItem("checkout");
+        clearCart();
+        navigate("/order-success", {
+          state: {
+            orderId: orderData.data.orderId,
+            total: orderTotal,
+            paymentMethod: "COD",
+          },
+        });
+        return;
+      }
+
+      const payRes = await fetch(`${API_URL}/api/payment/initiate`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ orderId: orderData.data.orderId }),
+      });
+
+      const payData = await payRes.json();
+      if (!payRes.ok) throw new Error(payData.message);
+
+      sessionStorage.setItem("pendingOrder", orderData.data.orderId);
+      sessionStorage.removeItem("checkout");
+      sessionStorage.removeItem("directCheckout");
+      clearCart();
+      window.location.href = payData.redirectUrl;
+    } catch (err) {
+      alert(err.message || "Payment failed");
+      setProcessing(false);
+    }
+  };
+
   return (
     <div className="bg-[#020617] min-h-screen text-gray-200">
 
-      {/* ✅ SEO */}
-      <Helmet>
-        <title>Payment - Velvyana</title>
-        <meta name="description" content="Complete your payment securely at Velvyana." />
-        <meta name="keywords" content="payment, checkout, velvyana payment" />
-      </Helmet>
+      <SeoHead {...seo} />
 
       <div className="p-4 md:p-6">
         <div className="grid md:grid-cols-3 gap-6">
@@ -47,6 +122,10 @@ const Payment = () => {
             <h2 className="font-semibold text-lg mb-4 text-white">
               Choose Payment Method
             </h2>
+
+            <p className="text-sm text-gray-400 mb-4">
+              UPI, Card and Net Banking are processed securely via PhonePe.
+            </p>
 
             {/* METHODS */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -163,28 +242,19 @@ const Payment = () => {
               ))}
             </div>
 
-            <div className="flex justify-between font-semibold text-white mb-4">
-              <span>Total</span>
-              <span>
-                ₹{method === "COD" ? totalPrice + 40 : totalPrice}
-              </span>
-            </div>
+            <PriceSummary pricing={pricing} paymentMethod={method} />
 
-            {/* ✅ FIXED BUTTON */}
             <button
-              disabled={!isValid}
-              onClick={() => {
-                if (!isValid) return;
-                navigate("/order-success");
-              }}
+              disabled={!isValid || processing}
+              onClick={handlePayment}
               className={`w-full py-3 rounded-lg transition
                 ${
-                  isValid
+                  isValid && !processing
                     ? "bg-pink-500 hover:bg-pink-600 text-white"
                     : "bg-gray-700 text-gray-400 cursor-not-allowed"
                 }`}
             >
-              {method === "COD" ? "Place Order" : "Pay Now"}
+              {processing ? "Processing..." : method === "COD" ? "Place Order" : "Pay Now"}
             </button>
 
           </div>

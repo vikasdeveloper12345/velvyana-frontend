@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Helmet } from "react-helmet";
 
 // CONTEXT
 import CartProvider from "./context/CartContext";
@@ -19,6 +18,7 @@ import Loader from "./components/Loader";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
+import ProductRedirect from "./pages/ProductRedirect";
 import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
@@ -50,15 +50,10 @@ const ScrollHandler = ({ setLoading }) => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-
     setLoading(true);
-
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
-  }, [location.pathname]);
+  }, [location.pathname, location.search, location.key]);
 
   return null;
 };
@@ -71,14 +66,6 @@ function App() {
       
       <ScrollHandler setLoading={setLoading} />
 
-      <Helmet>
-        <title>Velvyana - Premium Chikankari & Ethnic Wear</title>
-        <meta
-          name="description"
-          content="Shop premium chikankari kurtis and ethnic wear for women at Velvyana."
-        />
-      </Helmet>
-
       {loading && <Loader />}
 
       <CartProvider>
@@ -87,13 +74,17 @@ function App() {
           <Routes>
 
             <Route path="/login" element={<Login />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
 
             <Route path="/" element={<MainLayout />}>
 
               {/* PUBLIC */}
               <Route index element={<Home />} />
               <Route path="products" element={<Products />} />
-              <Route path="/product/:slug" element={<ProductDetails />} />
+              <Route path="product-category/:categorySlug" element={<Products />} />
+              <Route path="product-category/:categorySlug/:subSlug" element={<Products />} />
+              <Route path="product/:slug" element={<ProductRedirect />} />
+              <Route path=":segment/:productSlug" element={<ProductDetails />} />
               <Route path="cart" element={<Cart />} />
               <Route path="contact" element={<Contact />} />
 
@@ -107,7 +98,7 @@ function App() {
 
               {/* BLOG DETAIL */}
               <Route path="/blog" element={<ACloserLook />} />
-              <Route path="blog/:id" element={<BlogDetails />} />
+              <Route path="blog/:slug" element={<BlogDetails />} />
 
               {/* PROTECTED */}
               <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -123,7 +114,6 @@ function App() {
               {/* FLOW */}
               <Route path="checkout" element={<Checkout />} />
               <Route path="payment" element={<Payment />} />
-              <Route path="order-success" element={<OrderSuccess />} />
 
             </Route>
 

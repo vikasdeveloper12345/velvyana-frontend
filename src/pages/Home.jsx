@@ -3,25 +3,20 @@ import CategorySection from "../components/CategorySection";
 import FeaturedProducts from "../components/FeaturedProducts";
 import ServiceHighlights from "../components/ServiceHighlights";
 import NewArrival from "../components/NewArrival";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { useSeo } from "../hooks/useSeo";
 
 const Home = () => {
+  const seo = useSeo("home", {
+    title: "Velvyana - Premium Chikankari & Ethnic Wear for Women",
+    description: "Discover premium chikankari kurtis, sarees and ethnic wear for women. Handmade elegance from Lucknow at Velvyana.",
+    keywords: "velvyana, chikankari kurti, ethnic wear women, saree, lucknow chikankari, indian fashion",
+  });
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
 
-      <Helmet>
-  <title>Velvyana - Premium Chikankari & Ethnic Wear for Women</title>
-
-   <meta
-    name="description"
-    content="Discover premium chikankari kurtis, sarees and ethnic wear for women. Handmade elegance from Lucknow at Velvyana."
-   />
-
-   <meta
-    name="keywords"
-    content="velvyana, chikankari kurti, ethnic wear women, saree, lucknow chikankari, indian fashion"
-    />
-   </Helmet>
+      <SeoHead {...seo} />
 
       {/* MAIN CONTENT */}
       <div className="flex-grow">

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { FaChevronDown, FaBars, FaTimes } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { getCategoryPath, getSubcategoryPath, nameToSlug } from "../utils/api";
+import { navLinkClass } from "../utils/nav";
 
 const categories = [
   { name: "Anarkali", sub: ["Pure mulmul", "Semi stitched", "Unstitched", "Viscose Georgette"] },
@@ -33,6 +34,8 @@ const CategoryBar = () => {
 
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get("category");
+  const pathMatch = location.pathname.match(/^\/product-category\/([^/]+)/);
+  const activeCategorySlug = pathMatch?.[1] || "";
 
   const handleNav = (e, path) => {
     if (!(e.ctrlKey || e.metaKey)) {
@@ -91,10 +94,6 @@ const CategoryBar = () => {
 
   return (
     <div ref={menuRef} className="bg-gray-900 text-white border-b border-gray-700">
-      <Helmet key={location.pathname}>
-        <title>Categories - Velvyana</title>
-      </Helmet>
-
       {/* MOBILE TOP BAR */}
       <div className="flex justify-between items-center px-4 py-3 md:hidden">
         <h2 className="text-lg font-semibold">Menu</h2>
@@ -105,12 +104,17 @@ const CategoryBar = () => {
 
       {/* DESKTOP NAVIGATION */}
       <div className="hidden md:flex justify-center items-center gap-8 px-6 py-3">
-        <a href="/" onClick={(e) => handleNav(e, "/")} className="hover:text-pink-500">
+        <a
+          href="/"
+          onClick={(e) => handleNav(e, "/")}
+          className={navLinkClass(location.pathname, "/")}
+        >
           Home
         </a>
 
         {categories.map((cat, index) => {
-          const isActiveCat = activeCategory === cat.name;
+          const isActiveCat =
+            activeCategory === cat.name || activeCategorySlug === nameToSlug(cat.name);
 
           return (
             <div
@@ -130,9 +134,9 @@ const CategoryBar = () => {
                 </button>
               ) : (
                 <a
-                  href={`/products?category=${cat.name}`}
-                  onClick={(e) => handleNav(e, `/products?category=${cat.name}`)}
-                  className="hover:text-pink-500"
+                  href={getCategoryPath(nameToSlug(cat.name))}
+                  onClick={(e) => handleNav(e, getCategoryPath(nameToSlug(cat.name)))}
+                  className={isActiveCat ? "text-pink-500" : "hover:text-pink-500"}
                 >
                   {cat.name}
                 </a>
@@ -156,8 +160,8 @@ const CategoryBar = () => {
                 <div className="absolute left-0 top-full pt-[10px] w-56 z-50">
                   <div className="bg-gray-800 border border-gray-700 rounded-md shadow-lg p-2">
                     <a
-                      href={`/products?category=${cat.name}`}
-                      onClick={(e) => handleNav(e, `/products?category=${cat.name}`)}
+                      href={getCategoryPath(nameToSlug(cat.name))}
+                      onClick={(e) => handleNav(e, getCategoryPath(nameToSlug(cat.name)))}
                       className="block px-3 py-2 font-semibold text-pink-400 hover:bg-gray-700 rounded"
                     >
                       All {cat.name}
@@ -166,9 +170,9 @@ const CategoryBar = () => {
                     {cat.sub.map((subItem, i) => (
                       <a
                         key={i}
-                        href={`/products?category=${cat.name}&sub=${subItem}`}
+                        href={getSubcategoryPath(nameToSlug(cat.name), nameToSlug(subItem))}
                         onClick={(e) =>
-                          handleNav(e, `/products?category=${cat.name}&sub=${subItem}`)
+                          handleNav(e, getSubcategoryPath(nameToSlug(cat.name), nameToSlug(subItem)))
                         }
                         className="block px-3 py-2 hover:bg-gray-700 hover:text-pink-400 rounded transition-colors"
                       >
@@ -182,14 +186,30 @@ const CategoryBar = () => {
           );
         })}
 
-        <a href="/blog" className="hover:text-pink-500" onClick={(e) => handleNav(e, "/blog")}>Blog</a>
-        <a href="/contact" className="hover:text-pink-500" onClick={(e) => handleNav(e, "/contact")}>Contact</a>
+        <a
+          href="/blog"
+          className={navLinkClass(location.pathname, "/blog")}
+          onClick={(e) => handleNav(e, "/blog")}
+        >
+          Blog
+        </a>
+        <a
+          href="/contact"
+          className={navLinkClass(location.pathname, "/contact")}
+          onClick={(e) => handleNav(e, "/contact")}
+        >
+          Contact
+        </a>
       </div>
 
       {/* MOBILE MENU CONTENT */}
       {mobileOpen && (
         <div className="md:hidden px-4 pb-4 space-y-2 bg-gray-900">
-          <a href="/" onClick={(e) => handleNav(e, "/")} className="block py-2 border-b border-gray-800">
+          <a
+            href="/"
+            onClick={(e) => handleNav(e, "/")}
+            className={`block py-2 border-b border-gray-800 ${navLinkClass(location.pathname, "/", "")}`}
+          >
             HOME
           </a>
           {categories.map((cat, index) => (
@@ -203,7 +223,15 @@ const CategoryBar = () => {
                     {cat.name}
                   </button>
                 ) : (
-                  <a href={`/products?category=${cat.name}`} onClick={(e) => handleNav(e, `/products?category=${cat.name}`)} className="py-2 block w-full">
+                  <a
+                    href={getCategoryPath(nameToSlug(cat.name))}
+                    onClick={(e) => handleNav(e, getCategoryPath(nameToSlug(cat.name)))}
+                    className={`py-2 block w-full ${
+                      activeCategory === cat.name || activeCategorySlug === nameToSlug(cat.name)
+                        ? "text-pink-500"
+                        : ""
+                    }`}
+                  >
                     {cat.name}
                   </a>
                 )}
@@ -217,8 +245,8 @@ const CategoryBar = () => {
               {cat.sub && openIndex === index && (
                 <div className="pl-4 space-y-1 mt-1 bg-gray-800/50 rounded-md p-2">
                   <a
-                    href={`/products?category=${cat.name}`}
-                    onClick={(e) => handleNav(e, `/products?category=${cat.name}`)}
+                    href={getCategoryPath(nameToSlug(cat.name))}
+                    onClick={(e) => handleNav(e, getCategoryPath(nameToSlug(cat.name)))}
                     className="block py-1 font-semibold text-pink-500"
                   >
                     All {cat.name}
@@ -226,8 +254,10 @@ const CategoryBar = () => {
                   {cat.sub.map((subItem, i) => (
                     <a
                       key={i}
-                      href={`/products?category=${cat.name}&sub=${subItem}`}
-                      onClick={(e) => handleNav(e, `/products?category=${cat.name}&sub=${subItem}`)}
+                      href={getSubcategoryPath(nameToSlug(cat.name), nameToSlug(subItem))}
+                      onClick={(e) =>
+                        handleNav(e, getSubcategoryPath(nameToSlug(cat.name), nameToSlug(subItem)))
+                      }
                       className="block py-1 text-gray-300"
                     >
                       {subItem}
@@ -237,6 +267,20 @@ const CategoryBar = () => {
               )}
             </div>
           ))}
+          <a
+            href="/blog"
+            onClick={(e) => handleNav(e, "/blog")}
+            className={`block py-2 border-b border-gray-800 ${navLinkClass(location.pathname, "/blog", "")}`}
+          >
+            BLOG
+          </a>
+          <a
+            href="/contact"
+            onClick={(e) => handleNav(e, "/contact")}
+            className={`block py-2 ${navLinkClass(location.pathname, "/contact", "")}`}
+          >
+            CONTACT
+          </a>
         </div>
       )}
     </div>
