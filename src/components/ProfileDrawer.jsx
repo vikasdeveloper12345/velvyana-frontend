@@ -5,13 +5,11 @@ import {
   FaMapMarkerAlt,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Helmet } from "react-helmet";
 
 const ProfileDrawer = ({ open, setOpen }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { logout } = useAuth();
 
   const handleNav = (e, path) => {
@@ -26,18 +24,6 @@ const ProfileDrawer = ({ open, setOpen }) => {
 
   return (
     <>
-      {/* SAFE META (no title) */}
-      <Helmet>
-        <meta
-          name="description"
-          content="User account menu with profile, orders, wishlist and address options on Velvyana."
-        />
-        <meta
-          name="keywords"
-          content="velvyana profile, user menu, wishlist, orders, account"
-        />
-      </Helmet>
-
       <div
         className="absolute right-4 top-16 w-64 
         bg-[#020617] border border-gray-800 

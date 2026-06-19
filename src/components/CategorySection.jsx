@@ -7,28 +7,58 @@ import sherwaniImg from "../assets/category/sherwani.png";
 import shirtImg from "../assets/category/shirt.png";
 import suitImg from "../assets/category/suit.png";
 
-import { useNavigate, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_URL, getCategoryPath, nameToSlug, resolveImageUrl } from "../utils/api";
+
+const FALLBACK_IMAGES = {
+  Anarkali: anarkaliImg,
+  Angrakha: angrakhaImg,
+  Kurti: kurtiImg,
+  Palazzo: palazzoImg,
+  Saree: sareeImg,
+  "Sherwani suit": sherwaniImg,
+  Shirt: shirtImg,
+  "Suit Piece": suitImg,
+};
+
+const defaultSection = {
+  heading: "Shop by Category",
+  subtitle: "Discover our curated collections",
+};
 
 const CategorySection = ({ showAll = false }) => {
-
   const navigate = useNavigate();
-  const location = useLocation();
+  const [section, setSection] = useState(defaultSection);
+  const [categories, setCategories] = useState([]);
 
-  const categories = [
-    { name: "Anarkali", img: anarkaliImg },
-    { name: "Angrakha", img: angrakhaImg },
-    { name: "Kurti", img: kurtiImg },
-    { name: "Palazzo", img: palazzoImg },
-    { name: "Saree", img: sareeImg },
-    { name: "Sherwani suit", img: sherwaniImg },
-    { name: "Shirt", img: shirtImg },
-    { name: "Suit Piece", img: suitImg },
-  ];
+  useEffect(() => {
+    fetch(`${API_URL}/api/home`)
+      .then((res) => res.json())
+      .then((data) => {
+        const catSection = data.data?.category_section;
+        if (catSection) {
+          setSection({
+            heading: catSection.heading || defaultSection.heading,
+            subtitle: catSection.subtitle || defaultSection.subtitle,
+          });
+          const items = (catSection.categories || []).map((cat) => ({
+            name: cat.name,
+            img: resolveImageUrl(cat.image) || FALLBACK_IMAGES[cat.name] || anarkaliImg,
+          }));
+          if (items.length) setCategories(items);
+        }
+      });
+  }, []);
 
-  const displayCategories = showAll ? categories : categories.slice(0, 8);
+  const fallbackCategories = Object.entries(FALLBACK_IMAGES).map(([name, img]) => ({
+    name,
+    img,
+  }));
 
-  // ✅ CTRL + CLICK SUPPORT
+  const displayList = categories.length ? categories : fallbackCategories;
+  const displayCategories = showAll ? displayList : displayList.slice(0, 8);
+
   const handleNav = (e, path) => {
     if (!(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -37,49 +67,32 @@ const CategorySection = ({ showAll = false }) => {
   };
 
   return (
-    // ✅ MOBILE spacing increased, DESKTOP unchanged
     <div className="mt-24 md:mt-24 py-12 bg-gray-900 flex justify-center">
-
-      {/* SEO */}
-      <Helmet key={location.pathname}>
-        <title>Shop by Category - Velvyana</title>
-        <meta
-          name="description"
-          content="Browse Velvyana categories like Anarkali, Kurti, Saree and more premium chikankari collections."
-        />
-        <meta
-          name="keywords"
-          content="velvyana categories, anarkali, kurti, saree, chikankari, ethnic wear"
-        />
-      </Helmet>
 
       <div className="w-full max-w-7xl px-6 
       bg-white/5 backdrop-blur-lg border border-white/10 
       rounded-3xl shadow-xl p-8 text-center">
 
-        {/* HEADING */}
         <h2 className="text-3xl font-semibold mb-2 text-white">
-          Shop by Category
+          {section.heading}
         </h2>
 
         <p className="text-gray-400 mb-8 text-sm">
-          Discover our curated collections
+          {section.subtitle}
         </p>
 
-        {/* GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
 
           {displayCategories.map((item, index) => (
             <a
               key={index}
-              href={`/products?category=${item.name}`}
+              href={getCategoryPath(nameToSlug(item.name))}
               onClick={(e) =>
-                handleNav(e, `/products?category=${item.name}`)
+                handleNav(e, getCategoryPath(nameToSlug(item.name)))
               }
               className="flex flex-col items-center group"
             >
 
-              {/* IMAGE */}
               <div className="w-full max-w-[220px] aspect-[9/16] 
               rounded-[120px] overflow-hidden shadow-md 
               group-hover:scale-105 transition">
@@ -87,11 +100,16 @@ const CategorySection = ({ showAll = false }) => {
                 <img
                   src={item.img}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const fallback = FALLBACK_IMAGES[item.name];
+                    if (fallback && e.target.src !== fallback) {
+                      e.target.src = fallback;
+                    }
+                  }}
+                  className="sharp-img w-full h-full object-cover"
                 />
               </div>
 
-              {/* TEXT */}
               <p className="mt-4 text-white font-medium 
               group-hover:text-pink-500 transition text-center">
                 {item.name}

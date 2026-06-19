@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
 import ProfileSidebar from "../components/ProfileSidebar";
 
 const Profile = () => {
@@ -21,19 +21,12 @@ const Profile = () => {
   return (
     <div className="bg-[#020617] min-h-screen text-gray-200">
 
-      {/* ✅ SEO */}
-      <Helmet>
-        <title>My Profile - Velvyana</title>
-        <meta
-          name="description"
-          content="Manage your Velvyana account profile, settings, and preferences."
-        />
-        <meta
-          name="keywords"
-          content="profile, account, velvyana user profile"
-        />
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <SeoHead
+        title="My Profile - Velvyana"
+        description="Manage your Velvyana account profile, settings, and preferences."
+        keywords="profile, account, velvyana user profile"
+        robots="noindex, nofollow"
+      />
 
       <div className="p-4 md:p-6">
         <div className="flex flex-col md:flex-row gap-6">

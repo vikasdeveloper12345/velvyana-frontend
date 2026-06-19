@@ -1,51 +1,50 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
+import { API_URL } from "../utils/api";
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-
-  // LOAD USER
-  useEffect(() => {
+const readStoredUser = () => {
+  try {
     const data = localStorage.getItem("user");
-    if (data) setUser(JSON.parse(data));
-  }, []);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};
 
-  // 🔥 LOGIN WITH BACKEND
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(readStoredUser);
+
   const login = async (email, password) => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
-      if (!res.ok) {
-        throw new Error(data.message);
-      }
-
-      // SAVE USER + TOKEN
       const userData = {
-        email,
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
         token: data.token,
       };
 
       setUser(userData);
       localStorage.setItem("user", JSON.stringify(userData));
-
       return { success: true };
     } catch (error) {
       return { success: false, message: error.message };
     }
   };
 
-  // LOGOUT
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");

@@ -1,39 +1,30 @@
 import { FaTruck, FaUndo, FaShieldAlt, FaHeadset } from "react-icons/fa";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Helmet } from "react-helmet";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { API_URL } from "../utils/api";
+import { defaultServices } from "../constants/homeDefaults";
+
+const ICON_MAP = {
+  truck: <FaTruck />,
+  undo: <FaUndo />,
+  shield: <FaShieldAlt />,
+  headset: <FaHeadset />,
+};
 
 const ServiceHighlights = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [services, setServices] = useState(defaultServices);
 
-  const services = [
-    {
-      icon: <FaTruck />,
-      title: "Free Shipping",
-      desc: "On orders above ₹499",
-      path: "/orders",
-    },
-    {
-      icon: <FaUndo />,
-      title: "Easy Returns",
-      desc: "7 days return policy",
-      path: "/orders",
-    },
-    {
-      icon: <FaShieldAlt />,
-      title: "Secure Payment",
-      desc: "100% secure checkout",
-      path: "/payment",
-    },
-    {
-      icon: <FaHeadset />,
-      title: "24/7 Support",
-      desc: "Always here to help",
-      path: "/contact",
-    },
-  ];
+  useEffect(() => {
+    fetch(`${API_URL}/api/home`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data?.services?.items?.length) {
+          setServices(data.data.services.items);
+        }
+      });
+  }, []);
 
-  // ✅ NAVIGATION FIX (CTRL + CLICK SUPPORT)
   const handleNav = (e, path) => {
     if (!(e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -47,22 +38,6 @@ const ServiceHighlights = () => {
     bg-[#020617] py-10 mt-12"
     >
 
-      {/* ✅ SEO ADDED */}
-      <Helmet key={location.pathname}>
-        <title>Our Services - Velvyana</title>
-
-        <meta
-          name="description"
-          content="Explore Velvyana services including free shipping, easy returns, secure payments, and 24/7 support."
-        />
-
-        <meta
-          name="keywords"
-          content="velvyana services, free shipping, easy returns, secure payment, customer support"
-        />
-      </Helmet>
-
-      {/* CENTER CONTENT */}
       <div
         className="max-w-7xl mx-auto px-6 
       grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
@@ -78,12 +53,10 @@ const ServiceHighlights = () => {
             hover:border-pink-500 transition"
           >
 
-            {/* ICON */}
             <div className="bg-pink-500 text-white p-3 rounded-lg text-xl">
-              {item.icon}
+              {ICON_MAP[item.icon] || <FaTruck />}
             </div>
 
-            {/* TEXT */}
             <div>
               <h3 className="font-semibold text-white">
                 {item.title}

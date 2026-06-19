@@ -1,59 +1,34 @@
 import { useRef, useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FaHeart } from "react-icons/fa";
-
-import anarkali1Img from "../assets/category/anarkali1.png";
-import semiImg from "../assets/category/semi.png";
-import suitImg from "../assets/category/suit.png";
-import kurtiImg from "../assets/category/kurti.png";
-
-const products = [
-  {
-    id: 1,
-    name: "Floral Yellow Multi Coloured Noor Organza Resham Chikankari Kurta Set",
-    brand: "VELVYANA",
-    img: anarkali1Img,
-    soldOut: true,
-  },
-  {
-    id: 2,
-    name: "Pastel Green Mulmul Pearl White Chikankari Ready to Wear Kurta Set",
-    brand: "VELVYANA",
-    img: semiImg,
-    soldOut: true,
-  },
-  {
-    id: 3,
-    name: "Sea Green Mulmul Pearl White Chikankari Ready to Wear Kurta Set",
-    brand: "VELVYANA",
-    img: suitImg,
-    soldOut: true,
-  },
-  {
-    id: 4,
-    name: "Pink Mulmul Pearl White Chikankari Ready to Wear Kurta Set",
-    brand: "VELVYANA",
-    img: kurtiImg,
-    soldOut: false,
-  },
-
-  ...Array(20).fill().map((_, i) => ({
-    id: i + 5,
-    name: "Chikankari Kurta Set " + (i + 5),
-    brand: "VELVYANA",
-    img: i % 2 === 0 ? anarkali1Img : semiImg,
-    soldOut: i % 2 === 0,
-  })),
-];
+import { API_URL, getProductPath, resolveImageUrl } from "../utils/api";
 
 const NewArrival = () => {
   const scrollRef = useRef();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // ✅ wishlist
+  const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/products?new_arrival=1`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(
+          (data.data || []).map((p) => ({
+            id: p.id,
+            slug: p.slug,
+            url_segment: p.url_segment,
+            category_slug: p.category_slug,
+            subcategory_slug: p.subcategory_slug,
+            name: p.name,
+            brand: "VELVYANA",
+            img: resolveImageUrl(p.img || p.images?.[0]),
+            soldOut: p.stock === 0,
+          }))
+        );
+      });
+  }, []);
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("wishlist")) || [];
@@ -115,20 +90,6 @@ const NewArrival = () => {
   return (
     <div className="w-full bg-gray-900 px-4 md:px-10 py-10">
 
-      <Helmet key={location.pathname}>
-    <title>New Arrivals - Velvyana</title>
-
-    <meta
-      name="description"
-      content="Shop the latest new arrivals at Velvyana. Discover trending chikankari kurtas, ethnic wear, and premium styles for every occasion."
-    />
-
-    <meta
-      name="keywords"
-      content="velvyana new arrivals, chikankari kurta, ethnic wear, latest fashion india, kurti, saree, designer suits"
-    />
-  </Helmet>
-
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl md:text-3xl font-semibold tracking-wide text-white">
           NEW ARRIVAL
@@ -174,14 +135,14 @@ const NewArrival = () => {
           {products.map((item) => (
             <a
               key={item.id}
-              href={`/product/${item.id}`}
+              href={getProductPath(item)}
               onClick={(e) =>
-                handleNav(e, `/product/${item.id}`, item)
+                handleNav(e, getProductPath(item), item)
               }
               className="min-w-[220px] md:min-w-[260px] group"
             >
 
-              <div className="relative overflow-hidden">
+              <div className="relative overflow-hidden product-photo-frame rounded-lg">
 
                 {/* ❤️ ONLY ADDITION */}
                 <div
@@ -200,8 +161,7 @@ const NewArrival = () => {
                 <img
                   src={item.img}
                   alt={item.name}
-                  className="w-full h-[260px] md:h-[350px] object-cover 
-                  transition duration-500 group-hover:scale-105"
+                  className="sharp-img transition duration-300"
                 />
 
                 {item.soldOut && (

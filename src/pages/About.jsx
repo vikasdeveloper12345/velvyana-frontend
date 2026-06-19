@@ -1,26 +1,32 @@
 import { useEffect, useState } from "react";
 import aboutBg from "../assets/banner/banner.jpeg";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { useSeo } from "../hooks/useSeo";
+import { API_URL } from "../utils/api";
+import { aboutContent } from "../content/policyContent";
 
 const About = () => {
   const [show, setShow] = useState(false);
+  const [pageContent, setPageContent] = useState(null);
+  const seo = useSeo("about", {
+    title: "About Velvyana - Chikankari & Ethnic Wear",
+    description:
+      "Learn about Velvyana, a premium brand offering handcrafted chikankari and ethnic wear from Lucknow.",
+    keywords: "about velvyana, chikankari brand, lucknow ethnic wear",
+  });
 
   useEffect(() => {
     setShow(true);
+    fetch(`${API_URL}/api/pages/about`)
+      .then((res) => res.json())
+      .then((data) => setPageContent(data.data));
   }, []);
 
   return (
     // 🔥 FIX: pb-20 added (footer se gap)
     <div className="bg-[#020617] text-gray-200 min-h-screen pb-20">
 
-      {/* SEO: about page */}
-         <Helmet>
-         <title>About Velvyana - Chikankari & Ethnic Wear</title>
-         <meta
-           name="description"
-            content="Learn about Velvyana, a premium brand offering handcrafted chikankari and ethnic wear from Lucknow."
-          />
-        </Helmet>
+      <SeoHead {...seo} />
 
       {/* HERO SECTION */}
       <div className="relative h-[300px] md:h-[400px] w-full">
@@ -53,61 +59,11 @@ const About = () => {
 
           <div className="space-y-5 text-sm md:text-base leading-relaxed text-gray-300">
 
-            <p>
-              Welcome to <span className="text-white font-medium">Velvyana</span>, a home of handcrafted elegance and timeless Indian artistry.
-              Velvyana was born from a deep love for traditional craftsmanship and the desire to bring the soulful beauty of <span className="text-white">Lucknowi Chikankari</span> to women who appreciate grace, heritage, and authenticity.
-            </p>
-
-            <p>
-              What began as a small dream has now grown into a heartfelt boutique, created with passion and dedication. Every piece at Velvyana is carefully curated and hand-embroidered by skilled artisans.
-            </p>
-
-            <p>
-              We believe that fashion is not just about wearing clothes — it is about expressing identity, confidence, and emotion.
-            </p>
-
-            <p>
-              At Velvyana, we focus on premium-quality fabrics like Pure Mulmul, Chanderi, Georgette, Organza, and Silk, paired with intricate handwork and elegant finishing.
-            </p>
-
-            {/* PROMISE */}
-            <div className="pt-4">
-              <h2 className="text-white text-lg font-semibold mb-2">
-                Our Promise
-              </h2>
-              <p>
-                To deliver craftsmanship with honesty, luxury with comfort, and beauty with purpose.
-              </p>
-            </div>
-
-            {/* YOU MATTER */}
-            <div className="pt-4">
-              <h2 className="text-white text-lg font-semibold mb-2">
-                For Us, You Matter
-              </h2>
-              <p>
-                Your feedback, love, and support guide our growth. Velvyana isn’t just a brand — it’s a family built on trust.
-              </p>
-            </div>
-
-            <p className="text-white font-medium">
-              Stay elegant, stay beautiful, stay Velvyana.
-            </p>
-
-            {/* CONTACT */}
-            <div className="pt-4 border-t border-gray-800">
-              <p className="text-gray-400 text-sm">
-                For bookings & inquiries:
-              </p>
-
-              <p className="text-white mt-1">
-                +91 90642 52616
-              </p>
-
-              <p className="text-pink-400">
-                @velvyanaofficial
-              </p>
-            </div>
+            {pageContent ? (
+              <div dangerouslySetInnerHTML={{ __html: pageContent.content }} />
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: aboutContent }} />
+            )}
 
           </div>
 

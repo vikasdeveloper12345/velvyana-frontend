@@ -1,11 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useState, useEffect } from "react";
-import { Helmet } from "react-helmet";
+import SeoHead from "../components/SeoHead";
+import { FaTrash } from "react-icons/fa";
+import { getProductPath } from "../utils/api";
+import { useStoreSettings } from "../hooks/useStoreSettings";
+import { calculateCartPricing } from "../utils/cartPricing";
+import PriceSummary from "../components/PriceSummary";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { cart, addToCart, removeFromCart, deleteFromCart } = useCart();
+  const { settings } = useStoreSettings();
 
   const [selected, setSelected] = useState([]);
 
@@ -25,35 +31,17 @@ const Cart = () => {
     selected.includes(item.id)
   );
 
-  const totalItems = selectedItems.reduce(
-    (acc, item) => acc + item.qty,
-    0
-  );
-
-  const totalPrice = selectedItems.reduce(
-    (acc, item) => acc + item.price * item.qty,
-    0
-  );
-
-  const discount = 800;
-  const finalAmount = totalPrice - discount;
+  const pricing = calculateCartPricing(selectedItems, settings);
 
   return (
     <div className="bg-[#020617] min-h-screen text-white">
 
-      {/* ✅ SEO */}
-      <Helmet>
-        <title>My Cart - Velvyana</title>
-        <meta
-          name="description"
-          content="View your selected chikankari products in cart at Velvyana and proceed to checkout."
-        />
-        <meta
-          name="keywords"
-          content="cart, velvyana cart, chikankari products, checkout"
-        />
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <SeoHead
+        title="My Cart - Velvyana"
+        description="View your selected chikankari products in cart at Velvyana and proceed to checkout."
+        keywords="cart, velvyana cart, chikankari products, checkout"
+        robots="noindex, nofollow"
+      />
 
       <div className="p-4 md:p-6">
         <div className="grid md:grid-cols-3 gap-6">
@@ -63,7 +51,7 @@ const Cart = () => {
 
             <div className="flex justify-between items-center p-4 border-b border-gray-700">
               <h2 className="font-semibold text-lg">
-                My Cart ({totalItems} items)
+                My Cart ({pricing.totalItems} items)
               </h2>
 
               <button
@@ -81,90 +69,91 @@ const Cart = () => {
             ) : (
               cart.map((item) => {
                 const isSelected = selected.includes(item.id);
+                const productPath = getProductPath(item);
+
+                const goToProduct = (e) => {
+                  if (!(e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    navigate(productPath, { state: item });
+                  }
+                };
 
                 return (
-                  <a
+                  <div
                     key={item.id}
-                    href={`/product/${item.id}`}
-                    onClick={(e) => {
-                      if (!(e.ctrlKey || e.metaKey)) {
-                        e.preventDefault();
-                        navigate(`/product/${item.id}`, { state: item });
-                      }
-                    }}
-                    className="block"
+                    className="flex gap-4 p-4 border-b border-gray-700 hover:bg-gray-800 transition"
                   >
-                    <div className="flex gap-4 p-4 border-b border-gray-700 hover:bg-gray-800 transition cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleItem(item.id)}
+                      className="accent-pink-500 mt-1"
+                    />
 
-                      {/* Checkbox */}
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={() => toggleItem(item.id)}
-                        className="accent-pink-500 mt-1"
-                      />
-
-                      {/* Image */}
+                    <button
+                      type="button"
+                      onClick={goToProduct}
+                      className="shrink-0 p-0 border-0 bg-transparent cursor-pointer"
+                    >
                       <img
                         src={item.img}
                         alt={item.name}
                         className="w-20 h-20 object-cover rounded-lg"
                       />
+                    </button>
 
-                      {/* Content */}
-                      <div className="flex-1">
-                        <h3 className="font-medium">{item.name}</h3>
+                    <div className="flex-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={goToProduct}
+                        className="font-medium text-left hover:text-pink-400 transition bg-transparent border-0 p-0 cursor-pointer text-white"
+                      >
+                        {item.name}
+                      </button>
 
-                        <p className="text-sm text-gray-400">
-                          Velvyana Exclusive
-                        </p>
+                      <p className="text-sm text-gray-400">Velvyana Exclusive</p>
 
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="font-semibold">
-                            ₹{item.price}
-                          </span>
-
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="font-semibold">₹{item.price}</span>
+                        {item.original_price && item.original_price > item.price && (
                           <span className="line-through text-gray-500 text-sm">
-                            ₹{item.price + 1000}
+                            ₹{item.original_price}
                           </span>
+                        )}
+                      </div>
 
-                          <span className="text-green-400 text-sm">
-                            20% off
-                          </span>
-                        </div>
-
-                        {/* Buttons */}
-                        <div
-                          className="flex items-center gap-2 mt-3"
-                          onClick={(e) => e.stopPropagation()}
+                      <div className="flex items-center gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item.id)}
+                          className="px-3 py-1 border border-gray-600 rounded hover:bg-gray-700 transition"
+                          aria-label="Decrease quantity"
                         >
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="px-3 py-1 border border-gray-600 rounded"
-                          >
-                            -
-                          </button>
+                          −
+                        </button>
 
-                          <span>{item.qty}</span>
+                        <span className="min-w-[24px] text-center">{item.qty}</span>
 
-                          <button
-                            onClick={() => addToCart(item)}
-                            className="px-3 py-1 border border-gray-600 rounded"
-                          >
-                            +
-                          </button>
+                        <button
+                          type="button"
+                          onClick={() => addToCart({ ...item, qty: 1 })}
+                          className="px-3 py-1 border border-gray-600 rounded hover:bg-gray-700 transition"
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
 
-                          <button
-                            onClick={() => deleteFromCart(item.id)}
-                            className="ml-4 text-gray-400 hover:text-red-400"
-                          >
-                            🗑
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => deleteFromCart(item.id)}
+                          className="ml-4 p-2 text-gray-400 hover:text-red-400 transition"
+                          aria-label="Remove from cart"
+                        >
+                          <FaTrash className="text-base" />
+                        </button>
                       </div>
                     </div>
-                  </a>
+                  </div>
                 );
               })
             )}
@@ -174,36 +163,8 @@ const Cart = () => {
           <div className="bg-gray-900 border border-gray-700 rounded-xl shadow p-4 h-fit">
 
             <h2 className="font-semibold mb-4">Price Details</h2>
+            <PriceSummary pricing={pricing} />
 
-            <div className="space-y-2 text-sm text-gray-300">
-              <div className="flex justify-between">
-                <span>Price ({totalItems} items)</span>
-                <span>₹{totalPrice}</span>
-              </div>
-
-              <div className="flex justify-between text-green-400">
-                <span>Discount</span>
-                <span>-₹{discount}</span>
-              </div>
-
-              <div className="flex justify-between text-green-400">
-                <span>Delivery Charges</span>
-                <span>FREE</span>
-              </div>
-            </div>
-
-            <hr className="my-4 border-gray-700" />
-
-            <div className="flex justify-between font-semibold">
-              <span>Total Amount</span>
-              <span>₹{finalAmount}</span>
-            </div>
-
-            <div className="bg-green-900 text-green-300 text-sm p-2 mt-3 rounded">
-              You will save ₹{discount} on this order
-            </div>
-
-            {/* Checkout button */}
             <a
               href="/checkout"
               onClick={(e) => {
@@ -214,7 +175,7 @@ const Cart = () => {
               }}
             >
               <button className="w-full mt-4 bg-pink-500 text-white py-3 rounded-lg hover:bg-pink-600 transition">
-                Place Order ({totalItems} items)
+                Place Order ({pricing.totalItems} items)
               </button>
             </a>
 

@@ -1,25 +1,10 @@
 import { useCart } from "../context/CartContext";
-import { Helmet } from "react-helmet";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
   return (
     <>
-      <Helmet>
-        <title>{product.name} | Velvyana</title>
-
-        <meta
-          name="description"
-          content={`Buy ${product.name} at best price on Velvyana. Premium ethnic wear collection available online.`}
-        />
-
-        <meta
-          name="keywords"
-          content="velvyana product, ethnic wear, kurti, saree, lehenga, online shopping india"
-        />
-      </Helmet>
-
       <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow hover:shadow-lg transition">
 
         {/* IMAGE */}
